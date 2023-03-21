@@ -1,0 +1,18 @@
+1.Dim层将维度表数据写入到hbase，通过phoenix,通过读取的mysql表配置信息，广播出去与主流进行connect，然后通过process算子判断到来的数据是不是属于维度表的信息，
+并且实现在process算子中自动建表
+
+2.DWD层关联的字典表是保存在mysql中的，通过JDBC SQL Connector 建立的mysql表，"primary key(`dic_code`) not enforced " +   //注意：not enforced 表示不对主键做强制的唯一性约束和非空约束校验，
+Flink 并不是数据的主人，因此只支持 not enforced 模式
+
+3.Flink的AsyncDataStream是一个异步的数据流操作，它允许异步的处理流数据，可以在数据到达之前并行地访问外部系统和服务，从而提高整个应用程序的处理性能和吞吐量。
+AsyncDataStream可以接受一个DataStream作为输入，通过调用一个异步函数来异步处理每个数据元素，并将结果作为一个Future对象发送到下游。当结果就绪时，
+会通过回调函数将结果推送到下游操作。AsyncDataStream需要指定异步函数、异步函数执行的最大并发数以及异步函数的超时时间。
+
+4.JdbcSink.<T>sink(sql,new JdbcStatementBuilder<T>() {可以使用反射获取类中的属性，并且根据@TransientSink注解来判断该属性是否要写入到sql占位符中，主要用于数据写出到phoenix
+
+5.Upsert Kafka Connector支持以 upsert 方式从 Kafka topic 中读写数据，Kafka Connector支持从 Kafka topic 中读写数据
+  Kafka Connector 要求表不能有主键,Upsert Kafka Connector 要求表必须有主键,Kafka Connector 不能消费带有 Upsert/Delete 操作类型数据的表，如 left join 生成的动态表
+  由于 left join 的存在，流中存在修改数据，所以写出数据使用 Upsert Kafka Connector
+
+
+6.流如何跟hbase 维表关联，可以通过Flink的AsyncDataStream方法，在异步调用的时候，获取维表的数据，第一次读取可以选择将读取出来的维表数据储存到redis中，避免重复读取
