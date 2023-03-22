@@ -30,7 +30,7 @@ public class MyKafkaUtil {
                     @Override
                     public boolean isEndOfStream(String nextElement) {
                         return false;
-                    }
+                    }  // 不检查消息流末尾，永远不停止消费
 
                     @Override
                     public String deserialize(ConsumerRecord<byte[], byte[]> record) throws Exception {

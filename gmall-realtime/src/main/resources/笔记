@@ -16,3 +16,25 @@ AsyncDataStream可以接受一个DataStream作为输入，通过调用一个异�
 
 
 6.流如何跟hbase 维表关联，可以通过Flink的AsyncDataStream方法，在异步调用的时候，获取维表的数据，第一次读取可以选择将读取出来的维表数据储存到redis中，避免重复读取
+
+7.MyKafkaUtil类中，当Kafka消费者从Kafka消息中读取数据时，KafkaDeserializationSchema的实现将负责将序列化的数据反序列化为Java对象。
+isEndOfStream方法用于检查是否到达Kafka消息流的末尾。该方法的返回值为布尔值，如果当前Kafka消息已经到达流的末尾，则返回true，否则返回false
+TypeInformation方法允许KafkaDeserializationSchema指定反序列化后的Java对象的类型，以便Flink运行时能够了解数据的类型信息
+
+8. json与string互转，json与对象互转
+  JSONObject jsonObject = JSON.parseObject(value);  String type = jsonObject.getString("type");
+  TableProcess tableProcess = JSON.parseObject(jsonObject.getString("after"), TableProcess.class);
+
+9. 多维json数组的使用
+  JSONArray displays = value.getJSONArray("displays");
+  JSONObject display = displays.getJSONObject(i);
+  display.put("common", common);
+  display.toJSONString()
+
+10.String a = "{\"name\":\"zs\",\"age\":14}";
+   String b = "name";
+   JSONObject jsonObject = JSON.parseObject(a);
+   Set<Map.Entry<String, Object>> entries = jsonObject.entrySet();
+   entries.removeIf(next -> !b.contains(next.getKey()));
+   System.out.println(jsonObject);
+   结果：{"name":"zs"} 这个可以去除json里面的属性

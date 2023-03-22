@@ -169,4 +169,5 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
         entries.removeIf(next -> !columnList.contains(next.getKey()));
 
     }
+
 }
