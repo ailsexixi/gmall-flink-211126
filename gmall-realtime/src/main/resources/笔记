@@ -68,4 +68,6 @@ TypeInformation方法允许KafkaDeserializationSchema指定反序列化后的Jav
                 "    data['split_coupon_amount'] split_coupon_amount, " +
                 "    pt  " +
                 "from topic_db " +
-                "where `database` = 'gmall-211126-flink' " 
+                "where `database` = 'gmall-211126-flink' "
+
+12.
