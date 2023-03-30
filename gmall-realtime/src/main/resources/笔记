@@ -12,7 +12,7 @@ AsyncDataStream可以接受一个DataStream作为输入，通过调用一个异�
 
 5.Upsert Kafka Connector支持以 upsert 方式从 Kafka topic 中读写数据，Kafka Connector支持从 Kafka topic 中读写数据
   Kafka Connector 要求表不能有主键,Upsert Kafka Connector 要求表必须有主键,Kafka Connector 不能消费带有 Upsert/Delete 操作类型数据的表，如 left join 生成的动态表
-  由于 left join 的存在，流中存在修改数据，所以写出数据使用 Upsert Kafka Connector
+  由于 left join 的存在，流中存在修改数据，所以写出数据使用 Upsert Kafka Connector 详看类DwdTradeOrderPreProcess
 
 
 6.流如何跟hbase 维表关联，可以通过Flink的AsyncDataStream方法，在异步调用的时候，获取维表的数据，第一次读取可以选择将读取出来的维表数据储存到redis中，避免重复读取
@@ -38,3 +38,34 @@ TypeInformation方法允许KafkaDeserializationSchema指定反序列化后的Jav
    entries.removeIf(next -> !b.contains(next.getKey()));
    System.out.println(jsonObject);
    结果：{"name":"zs"} 这个可以去除json里面的属性
+
+11.若读取的json里面有多个嵌套字段，在构建kafka 表时，可声明为MAP<>()格式如：参考详看类DwdTradeOrderPreProcess
+{"database":"gmall","table":"cart_info","type":"update","ts":1592270938,"xid":13090,"xoffset":1573,"data":
+{"id":100924,"user_id":"93","sku_id":16,"cart_price":4488.00,"sku_num":1,"img_url":"http://47.93.148.192:8080/group1/M00/00/02/rBHu8l-sklaALrngAAHGDqdpFtU741.jpg",
+"sku_name":"华为 HUAWEI P40 麒麟990 5G SoC芯片 5000万超感知徕卡三摄 30倍数字变焦 8GB+128GB亮黑色全网通5G手机","is_checked":null,
+"create_time":"2020-06-14 09:28:57","operate_time":null,"is_ordered":1,"order_time":"2021-10-17 09:28:58","source_type":"2401","source_id":null},
+"old":{"is_ordered":0,"order_time":null}}
+创建方式为： return "CREATE TABLE topic_db ( " +
+                      "  `database` STRING, " +
+                      "  `table` STRING, " +
+                      "  `type` STRING, " +
+                      "  `data` MAP<STRING,STRING>, " +
+                      "  `old` MAP<STRING,STRING>, " +
+                      "  `pt` AS PROCTIME() " +
+调用为：
+  "select " +
+                "    data['id'] id, " +
+                "    data['order_id'] order_id, " +
+                "    data['sku_id'] sku_id, " +
+                "    data['sku_name'] sku_name, " +
+                "    data['order_price'] order_price, " +
+                "    data['sku_num'] sku_num, " +
+                "    data['create_time'] create_time, " +
+                "    data['source_type'] source_type, " +
+                "    data['source_id'] source_id, " +
+                "    data['split_total_amount'] split_total_amount, " +
+                "    data['split_activity_amount'] split_activity_amount, " +
+                "    data['split_coupon_amount'] split_coupon_amount, " +
+                "    pt  " +
+                "from topic_db " +
+                "where `database` = 'gmall-211126-flink' " 
