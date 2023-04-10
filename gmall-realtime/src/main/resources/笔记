@@ -73,3 +73,13 @@ TypeInformation方法允许KafkaDeserializationSchema指定反序列化后的Jav
 12.所有Flink函数类都有其Rich版本。它与常规函数的不同在于，可以获取运行环境的上下文，并拥有一些生命周期方法，所以可以实现更复杂的功能。
 也有意味着提供了更多的，更丰富的功能，比如richmapFunction,生命周期方法有open,close,getRuntimeContext()方法提供了函数的RuntimeContext的一些信息，
 例如函数执行的并行度，任务的名字，以及state状态. 开发人员在需要的时候自行调用获取运行时上下文对象
+
+13.以下用在api中
+intervalJoin：段 join，两条流的每一条数据都可以与另一条流某个时间范围内的数据做关联。底层实现原理：以 A.intervalJoin(B) 为例，
+A 流中的数据进入算子后，会被保存到键控状态中，同时注册一个定时器，定时器触发时清空 A 流状态中的数据。在定时器触发之前，B 流中的每一条数据都可以与状态中保存的 A 流数据关联。
+同理，B 流中也维护了状态定时器。由此实现了段 join。假定A流中的定时器存在时长为3s，B流中的定时器存在时长为5s，A 流中某条数据抵达时间为 tA，
+可与 tA – 5s ~ tA + 3s 时间范围内抵达的 B 流数据关联；B 流中某条数据抵达时间为 tB，可与 tB – 3s ~ tB + 5s 时间范围内抵达的 A 流数据关联。
+	union()：用于两条及多条流之间的合并，对流的数量没有限制，但是要求所有流中的数据结构完全一致。详见DwsTrafficVcChArIsNewPageViewWindow
+	connect()：用于两条流的合并，其后紧邻的 process 算子中可以使用的 CoProcessFunction 是双流处理最底层的 API，可以通过键控状态和定时器的运用实现join、广播join、
+段join等各种关联。connect() 只能对两条流做关联，且对两条流的数据结构没有要求。
+	join()：该算子的功能可以被其它算子替代，目前基本不用。
