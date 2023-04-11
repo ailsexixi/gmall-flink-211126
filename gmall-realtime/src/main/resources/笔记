@@ -83,3 +83,30 @@ A 流中的数据进入算子后，会被保存到键控状态中，同时注册
 	connect()：用于两条流的合并，其后紧邻的 process 算子中可以使用的 CoProcessFunction 是双流处理最底层的 API，可以通过键控状态和定时器的运用实现join、广播join、
 段join等各种关联。connect() 只能对两条流做关联，且对两条流的数据结构没有要求。
 	join()：该算子的功能可以被其它算子替代，目前基本不用。
+
+13.ProcessFunction API(底层API)
+我们之前学习的转换算子是无法访问事件的时间戳信息和水位线信息的。而这在一些应用场景下，极为重要。例如MapFunction这样的map转换算子就无法访问时间戳或者当前事件的事件时间。
+基于此，DataStream API提供了一系列的Low-Level转换算子。可以访问时间戳、watermark以及注册定时事件。还可以输出特定的一些事件，例如超时事件等。
+Process Function用来构建事件驱动的应用以及实现自定义的业务逻辑(使用之前的window函数和转换算子无法实现)。例如，Flink SQL就是使用Process Function实现的
+env
+  .socketTextStream("hadoop102", 9999)
+  .map(line -> {
+      String[] datas = line.split(",");
+      return new WaterSensor(datas[0], Long.valueOf(datas[1]), Integer.valueOf(datas[2]));
+  })
+  .process(new ProcessFunction<WaterSensor, String>() {
+      @Override
+      public void processElement(WaterSensor value, Context ctx, Collector<String> out) throws Exception {
+          out.collect(value.toString());
+      }
+  })
+  .print();
+Context和OnTimerContext所持有的TimerService对象拥有以下方法:
+	currentProcessingTime(): Long 返回当前处理时间
+	currentWatermark(): Long 返回当前watermark的时间戳
+	registerProcessingTimeTimer(timestamp: Long): Unit 会注册当前key的processing time的定时器。当processing time到达定时时间时，触发timer。
+	registerEventTimeTimer(timestamp: Long): Unit 会注册当前key的event time 定时器。当水位线大于等于定时器注册的时间时，触发定时器执行回调函数。
+	deleteProcessingTimeTimer(timestamp: Long): Unit 删除之前注册处理时间定时器。如果没有这个时间戳的定时器，则不执行。
+	deleteEventTimeTimer(timestamp: Long): Unit 删除之前注册的事件时间定时器，如果没有此时间戳的定时器，则不执行
+
+14.
