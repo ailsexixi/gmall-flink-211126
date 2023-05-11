@@ -114,4 +114,6 @@ String sql = "upsert into " + GmallConfig.HBASE_SCHEMA + "." + sinkTable + "(" +
                    StringUtils.join(columns, ",") + ") values ('" +
                    StringUtils.join(values, "','") + "')";
 
-15.https://mp.weixin.qq.com/s/L20Nl5YrCpIMFbL9OHq7Sw flink 1.11 中的随机数据生成器-DataGen connector
+15.https://mp.weixin.qq.com/s/L20Nl5YrCpIMFbL9OHq7Sw flink 1.12 中的随机数据生成器-DataGen connector
+
+16.JdbcUtil.queryList当前工具类可以适用于任何JDBC方式访问的数据库中的任何查询语句
